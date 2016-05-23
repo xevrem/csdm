@@ -1,0 +1,13 @@
+Tasks for PyCDM
+
+-SQRL-like friend-authentication system
+-Node Lookup process
+-Bootstrap via Node-Lookup
+-Friend Nodes
+-Friending process
+-Message processing - convert to functional/declarative structures and update filer as appropriate
+-Messages should be converted into base64... (python base64 lib via b64encode/b64decode)
+-Admin pages... need to work this...
+FIXED-Periodic Keep-Alive... why is this running twice... [Cause: flask debug feature loading it again....]
+-capture the protocol and API in a document...
+-modularize the asym and sym cipher modules (as practicable)
