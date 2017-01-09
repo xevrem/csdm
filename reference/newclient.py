@@ -59,28 +59,28 @@ from paws.pahttp import HttpRequest
 
 fi = Filer()
 
-async def do_get_manifest(key):
+async def do_get_manifest(host, port, key):
     print('C: requesting manifest for {}'.format(key))
     msg = json.dumps(make_manifest_request(key))
-    data = await get(url='http://localhost/manifest', port=8080, body=msg)
+    data = await get(url=f'http://{host}/manifest', port=port, body=msg)
     req = HttpRequest(data)
-    print('C: manifest retrieved:')
+    print('C: manifest retrieved...')
     #print('\n{}'.format(req.body))
     return req.body
 
-async def do_get_manifest_list():
+async def do_get_manifest_list(host, port):
     print('C: requesting manifest list...')
-    data = await get(url='http://localhost/manifest_list', port=8080)
+    data = await get(url=f'http://{host}/manifest_list', port=port)
     req = HttpRequest(data)
     print('C: manifest list retrieved...')
     js = json.loads(req.body)
     for manifest in js['body']:
         print(manifest)
 
-async def do_get_value(key):
+async def do_get_value(host, port, key):
     #print('C: requesting value...')
     msg = json.dumps(make_value_request(key))
-    data = await get(url='http://localhost/value', port=8080, body=msg)
+    data = await get(url=f'http://{host}/value', port=port, body=msg)
     req = HttpRequest(data)
     #print('C: value retrieved:')
     #print('{}'.format(req.body))
@@ -92,8 +92,8 @@ def execute_async_cmd(coro, *args):
     loop.run_until_complete(future)
     #loop.run_forever()
 
-async def get_file(manifest_key, passphrase):
-    data = await do_get_manifest(manifest_key)
+async def get_file(host, port, manifest_key, passphrase):
+    data = await do_get_manifest(host, port, manifest_key)
     js = json.loads(data)
     manifest = json.loads(js['body'])
 
@@ -114,7 +114,7 @@ async def get_file(manifest_key, passphrase):
 
     #retrieve each chunk and store it...
     for chunk in manifest['manifest']:
-        cdata = await do_get_value(chunk)
+        cdata = await do_get_value(host, port, chunk)
         jdata = json.loads(cdata)
         data = b64dec(jdata['body'])
 
@@ -126,20 +126,20 @@ def main(args):
     #print(args)
 
     if args['list-manifests']:
-        execute_async_cmd(do_get_manifest_list)
+        execute_async_cmd(do_get_manifest_list, args['-a'], args['-p'])
     elif args['get-manifest']:
         if args['<manifest>'] is not None:
-            execute_async_cmd(do_get_manifest, args['<manifest>'])
+            execute_async_cmd(do_get_manifest, args['-a'], args['-p'], args['<manifest>'])
         else:
             print('usage: ./client.py get-manifest <manifest>')
     elif args['get-file']:
         if args['<manifest>'] is not None:
-            execute_async_cmd(get_file, args['<manifest>'], args['<passphrase>'])
+            execute_async_cmd(get_file, args['-a'], args['-p'], args['<manifest>'], args['<passphrase>'])
         else:
             print('usage: ./clinet.py get-file <manifest> <passphrase>')
     elif args['get-value']:
         if args['<key>'] is not None:
-            execute_async_cmd(do_get_value, args['<key>'])
+            execute_async_cmd(do_get_value, args['-a'], args['-p'], args['<key>'])
         else:
             print('usage: ./client.py get-value <key>')
     else:
