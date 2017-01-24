@@ -2,7 +2,7 @@
 """
     This file is part of CSDM.
 
-    Copyright (C) 2013, 2014, 2015, 2016  Erika V. Jonell <@xevrem>
+    Copyright (C) 2013, 2014, 2015, 2016, 2017  Erika V. Jonell <@xevrem>
 
     CSDM is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,15 +55,15 @@ from diffie import DiffieHash
 import asyncio
 import uvloop
 from paws.paws import get
-from paws.pahttp import HttpRequest
+from paws.pahttp import http_data_create
 
 fi = Filer()
 
 async def do_get_manifest(host, port, key):
-    print('C: requesting manifest for {}'.format(key))
+    print(f'C: requesting manifest for {key}')
     msg = json.dumps(make_manifest_request(key))
-    data = await get(url=f'http://{host}/manifest', port=port, body=msg)
-    req = HttpRequest(data)
+    data = await get(url=f'http://{host}/manifest/{key}', port=port, body=msg)
+    req = http_data_create(data)
     print('C: manifest retrieved...')
     #print('\n{}'.format(req.body))
     return req.body
@@ -71,7 +71,7 @@ async def do_get_manifest(host, port, key):
 async def do_get_manifest_list(host, port):
     print('C: requesting manifest list...')
     data = await get(url=f'http://{host}/manifest_list', port=port)
-    req = HttpRequest(data)
+    req = http_data_create(data)
     print('C: manifest list retrieved...')
     js = json.loads(req.body)
     for manifest in js['body']:
@@ -80,8 +80,8 @@ async def do_get_manifest_list(host, port):
 async def do_get_value(host, port, key):
     #print('C: requesting value...')
     msg = json.dumps(make_value_request(key))
-    data = await get(url=f'http://{host}/value', port=port, body=msg)
-    req = HttpRequest(data)
+    data = await get(url=f'http://{host}/value/{key}', port=port, body=msg)
+    req = http_data_create(data)
     #print('C: value retrieved:')
     #print('{}'.format(req.body))
     return req.body
@@ -120,7 +120,9 @@ async def get_file(host, port, manifest_key, passphrase):
 
         fi.write_chunk(data, chunk)
 
-    print('C: got chunks...')
+    print('C: chunks retrieved...')
+
+def assemble_file(key, passphrase)
 
 def main(args):
     #print(args)

@@ -2,7 +2,7 @@
 """
     This file is part of CSDM.
 
-    Copyright (C) 2013, 2014, 2015, 2016  Erika V. Jonell <@xevrem>
+    Copyright (C) 2013, 2014, 2015, 2016, 2017  Erika V. Jonell <@xevrem>
 
     CSDM is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ from diffie import DiffieHash
 import asyncio
 
 from paws.paws import run_server
-from paws.pahttp import HttpResponse
+from paws import pahttp
 from paws.palog import AsyncLogger
 
 
@@ -71,9 +71,11 @@ async def manifest(req, res):
     global log
 
     if req.body is not None:
-        js = json.loads(req.body)
-        log.log('S: manifest request received:\n{}'.format(js))
-        key = js['body']
+        #js = json.loads(req.body)
+        #log.log('S: manifest request received:\n{}'.format(js))
+        #key = js['body']
+        key = req.wildcards['key']
+        log.log(f'S: manifest request received: {key}')
 
         if not fi.manifest_exists(key):
             res.body = json.dumps(csdm.make_status_response('NO_FILE'))
@@ -93,9 +95,11 @@ async def value(req, res):
     global log
 
     if req.body is not None:
-        js = json.loads(req.body)
-        log.log('S: value request received:\n{}'.format(js))
-        key = js['body']
+        #js = json.loads(req.body)
+        #log.log('S: value request received:\n{}'.format(js))
+        #key = js['body']
+        key = req.wildcards['key']
+        log.log(f'S: value request received: {key}')
 
         if not fi.chunk_exists(key):
             res.body = json.dumps(csdm.make_status_response('NO_FILE'))
@@ -131,8 +135,8 @@ async def friend_request(req, res):
 
 def routes(app):
     app.add_route('/', root)
-    app.add_route('/manifest', manifest)
-    app.add_route('/value', value)
+    app.add_route('/manifest/{key}', manifest)
+    app.add_route('/value/{key}', value)
     app.add_route('/manifest_list', manifest_list)
     app.add_route('/ping', ping)
     app.add_route('/friend_request', friend_request)
@@ -152,7 +156,7 @@ def main():
     log = AsyncLogger(loop=asyncio.get_event_loop(), debug=True)
 
     #start the server
-    run_server(routing_cb=routes, host=args['-a'], port=int(args['-p']), processes=1, use_uvloop=False, debug=False)
+    run_server(routing_cb=routes, host=args['-a'], port=int(args['-p']), processes=8, use_uvloop=True, debug=False)
 
 
 if __name__ == '__main__':
